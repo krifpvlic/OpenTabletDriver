@@ -17,13 +17,13 @@ REPO_ROOT="$(readlink -f "${ENG_SCRIPT_ROOT}/../")"
 
 ### Build Requirements
 
-DOTNET_VERSION="7.0"
+DOTNET_VERSION="8.0"
 
 # could do away with declare -g, but did it anyway for all of them for consistency
 # with NET_RUNTIME (a global variable without initial value in lib.sh)
 declare -g OUTPUT="dist"
 declare -g CONFIG="Release"
-declare -g FRAMEWORK="net7.0"
+declare -g FRAMEWORK="net$DOTNET_VERSION"
 declare -g NET_RUNTIME
 declare -g DOG_FOOD="true"
 declare -g BUILD="true"
@@ -67,7 +67,7 @@ OTD_CLI="otd"
 ### Automatically handle errors and exit
 
 handle_error() {
-  echo "Build failed!"
+  echo "Build failed!" >&2
   cd "${PREV_PATH}"
   exit 1
 }
@@ -82,7 +82,7 @@ trap handle_exit EXIT
 ### Helper functions
 
 exit_with_error() {
-  echo "$1"
+  echo "$1" >&2
   handle_error
 }
 
@@ -276,6 +276,7 @@ move_to_nested() {
   local nested="${2}"
 
   local contents="$(echo "${source}"/*)"
+  echo "Moving ${source} to ${nested}..."
   mkdir -p "${nested}"
   mv ${contents} "${nested}"
 }
@@ -302,6 +303,11 @@ copy_manpage() {
 }
 
 create_source_tarball() {
-  local output_file_name="${1}"
-  git archive --format=tar --prefix="${output_file_name}/" HEAD
+  local prefix="${1}"
+  git archive --format=tar --prefix="${prefix}/" HEAD
+}
+
+create_source_tarball_gz() {
+  local prefix="${1}"
+  git archive --format=tar.gz --prefix="${prefix}/" HEAD
 }
